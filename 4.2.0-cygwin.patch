@@ -1,0 +1,85 @@
+--- origsrc/libxmp-4.2.0/Makefile.in	2013-09-01 17:14:50.000000000 -0500
++++ src/libxmp-4.2.0/Makefile.in	2013-11-11 21:35:07.449219200 -0600
+@@ -36,6 +36,7 @@ SOLIB		= libxmp.so
+ SHLIB		= $(SOLIB).$(VERSION)
+ SONAME		= $(SOLIB).$(VERSION_MAJOR)
+ DLL		= libxmp.dll
++CYGDLL		= cygxmp-$(VERSION_MAJOR).dll
+ DYLIB		= libxmp.$(VERSION).dylib
+ GCLIB		= libxmp-gc.a
+ 
+@@ -82,6 +83,8 @@ coverage: lib/$(GCLIB)
+ 
+ dll: lib/$(DLL)
+ 
++cygdll: lib/$(CYGDLL)
++
+ dylib: lib/$(DYLIB)
+ 
+ lib/$(LIB): $(OBJS)
+@@ -105,6 +108,12 @@ lib/$(DLL): $(OBJS)
+ 	if [ "$(V)" -gt 0 ]; then echo $$CMD; else echo LD $@ ; fi; \
+ 	eval $$CMD
+ 
++lib/$(CYGDLL): $(OBJS)
++	@mkdir -p lib
++	@CMD='$(LD) $(LDFLAGS) -shared -Wl,--out-implib,lib/libxmp.dll.a -o $@ $(OBJS) $(LIBS)'; \
++	if [ "$(V)" -gt 0 ]; then echo $$CMD; else echo LD $@ ; fi; \
++	eval $$CMD
++
+ # From http://stackoverflow.com/questions/15905310:
+ # The version number checks that dyld performs are limited to ensuring that
+ # the compatibility version of the library being loaded is higher than the
+@@ -135,6 +144,12 @@ install: all
+ 		echo "Installing $(LIB)..."; \
+ 		$(INSTALL) -m644 lib/$(LIB) $(DESTDIR)$(LIBDIR); \
+ 	fi
++	@if [ -f lib/$(CYGDLL) ]; then \
++		echo "Installing $(CYGDLL)..."; \
++		mkdir -p $(DESTDIR)$(BINDIR); \
++		$(INSTALL) -m755 lib/$(CYGDLL) $(DESTDIR)$(BINDIR); \
++		$(INSTALL) -m644 lib/libxmp.dll.a $(DESTDIR)$(LIBDIR); \
++	fi
+ 	@if [ -f lib/$(DYLIB) ]; then \
+ 		echo "Installing $(DYLIB)..."; \
+ 		$(INSTALL) -m644 lib/$(DYLIB) $(DESTDIR)$(LIBDIR); \
+--- origsrc/libxmp-4.2.0/configure.ac	2013-06-08 21:31:36.000000000 -0500
++++ src/libxmp-4.2.0/configure.ac	2013-11-11 21:33:53.487988900 -0600
+@@ -40,13 +40,6 @@ powerpc64)
+   ;;
+ esac
+ 
+-case "${host_os}" in
+-cygwin*)
+-  enable_static=yes
+-  enable_shared=no
+-  ;;
+-esac
+-
+ if test "${enable_static}" = yes; then
+   AC_SUBST(STATIC,static)
+ fi
+@@ -58,7 +51,11 @@ if test "${enable_shared}" != no; then
+     AC_CHECK_DEFINED(__APPLE__,[
+       AC_SUBST(SHARED,dylib)
+     ],[
+-      AC_SUBST(SHARED,shared)
++      AC_CHECK_DEFINED(__CYGWIN__,[
++        AC_SUBST(SHARED,cygdll)
++      ],[
++        AC_SUBST(SHARED,shared)
++      ])
+     ])
+   ])
+ fi
+--- origsrc/libxmp-4.2.0/src/common.h	2013-11-09 15:38:53.000000000 -0600
++++ src/libxmp-4.2.0/src/common.h	2013-11-11 21:33:53.491989100 -0600
+@@ -10,7 +10,7 @@
+ #include "xmp.h"
+ 
+ #if defined(__GNUC__) || defined(__clang__)
+-#if !defined(WIN32) && !defined(ANDROID) && !defined(__APPLE__) && !defined(__AMIGA__) && !defined(B_BEOS_VERSION) && !defined(__ATHEOS__)
++#if !defined(WIN32) && !defined(ANDROID) && !defined(__APPLE__) && !defined(__AMIGA__) && !defined(B_BEOS_VERSION) && !defined(__ATHEOS__) && !defined(__CYGWIN__)
+ #define USE_VERSIONED_SYMBOLS
+ #endif
+ #endif

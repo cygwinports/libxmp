@@ -1,0 +1,31 @@
+NAME="libxmp"
+VERSION=4.2.0
+RELEASE=1
+CATEGORY="Libs"
+SUMMARY="Extended Module Player library"
+DESCRIPTION="The Extended Module Player library, or libxmp, is a portable cross-
+platform module renderer. Libxmp loads over 90 mainstream and obscure module
+formats from Amiga, Atari, Acorn, Apple IIgs and PC."
+HOMEPAGE="http://xmp.sourceforge.net/"
+SRC_URI="mirror://sourceforge/xmp/${NAME}-${VERSION}.tar.gz"
+PATCH_URI="4.2.0-cygwin.patch"
+
+PKG_NAMES="${NAME}4 ${NAME}-devel"
+libxmp4_CONTENTS="--exclude=*.html usr/bin/cygxmp-4.dll usr/share/doc/"
+libxmp_devel_CONTENTS="usr/include/ usr/lib/ usr/share/doc/${NAME}/*html usr/share/man/man3/"
+
+src_compile() {
+	cd ${S}
+	cygautoreconf
+	lndirs
+	cd ${B}
+	cygconf
+	cygmake
+}
+
+src_install() {
+	cd ${B}
+	cyginstall
+	dodoc docs/COPYING.LIB docs/CREDITS docs/Changelog docs/libxmp.html
+	doman docs/libxmp.3
+}
