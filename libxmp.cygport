@@ -1,5 +1,5 @@
 NAME="libxmp"
-VERSION=4.2.0
+VERSION=4.4.0
 RELEASE=1
 CATEGORY="Libs"
 SUMMARY="Extended Module Player library"
@@ -8,7 +8,7 @@ platform module renderer. Libxmp loads over 90 mainstream and obscure module
 formats from Amiga, Atari, Acorn, Apple IIgs and PC."
 HOMEPAGE="http://xmp.sourceforge.net/"
 SRC_URI="mirror://sourceforge/xmp/${NAME}-${VERSION}.tar.gz"
-PATCH_URI="4.2.0-cygwin.patch"
+PATCH_URI="4.4.0-cygwin.patch"
 
 PKG_NAMES="${NAME}4 ${NAME}-devel"
 libxmp4_CONTENTS="--exclude=*.html usr/bin/cygxmp-4.dll usr/share/doc/"
